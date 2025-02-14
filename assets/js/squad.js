@@ -176,7 +176,7 @@ jQuery( function( $ ) {
             onSuccess: squad_success_callback,
             key: wc_squad_params.key,
             email: wc_squad_params.email,
-            ammount: amount,
+            amount: amount,
             transaction_ref: wc_squad_params.transaction_ref,
             currency_code: wc_squad_params.currency_code,
             customer_name: wc_squad_params.customer_name,
