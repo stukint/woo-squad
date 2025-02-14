@@ -677,7 +677,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 			$last_name	   = $order->get_billing_last_name();
 			$customer_name = $first_name . ' ' . $last_name;
 			$amount        = $order->get_total() * 100;
-			$txnref        = 'SQD' . $order_id . '_' . time();
+			$txnref        = 'SQD' . '_' . $order_id . '_' . time();
 			$the_order_id  = $order->get_id();
 			$the_order_key = $order->get_order_key();
 			$currency      = $order->get_currency();
