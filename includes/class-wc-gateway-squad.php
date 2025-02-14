@@ -605,7 +605,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 			'plugin_url' => WC_SQUAD_URL,
 		);
 
-        wp_enqueue_script( 'wc_squad_admin', plugins_url( 'assets/js/squad-admin' . $suffix . 'js', WC_SQUAD_MAIN_FILE ), array(), WC_SQUAD_VERSION, true );
+        wp_enqueue_script( 'wc_squad_admin', plugins_url( 'assets/js/squad-admin' . $suffix . '.js', WC_SQUAD_MAIN_FILE ), array(), WC_SQUAD_VERSION, true );
 
         wp_localize_script( 'wc_squad_admin', 'wc_squad_admin_params', $squad_admin_params );
 
