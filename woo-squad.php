@@ -190,6 +190,7 @@ function wc_gateway_squad_woocommerce_block_support() {
             'woocommerce_blocks_payment_method_type_registration',
             static function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
                 //Register blocks after creation
+				$payment_method_registry->register( new WC_Gateway_Squad_Blocks_Support() );
             }
         );
 
