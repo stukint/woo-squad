@@ -1186,20 +1186,25 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		$json = file_get_contents( 'php://input' );
 
-		// if( $_SERVER['HTTP_X_SQUAD_ENCRYPTED_BODY'] !== hash_hmac('sha512', $json, $this->secret_key ) ){
-		// 	exit;
-		// }
+		if( $_SERVER['HTTP_X_SQUAD_ENCRYPTED_BODY'] !== strtoupper(hash_hmac('sha512', $json, $this->secret_key )) ){
+			exit;
+		}
 
 		$event = json_decode( $json );
 
-		error_log(print_r($_SERVER['HTTP_X_SQUAD_ENCRYPTED_BODY'], true));
+		if (strtolower($event->Event) !== 'charge_successful'){
+			return;
+		}
 
-		error_log(print_r(strtoupper(hash_hmac('sha512', $json, $this->secret_key )), true));
+		sleep( 10 );
+
+		$squad_response = $this->get_squad_transaction($event->Body->transaction_ref);
+
+		// if($squad_response === false){
+		// 	return;
+		// }
 		
-		error_log(print_r($json, true));
-
-		error_log(print_r($event, true));
-
+		error_log(print_r($squad_response, true));
 		
 
 	}
