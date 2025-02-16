@@ -910,7 +910,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 			'initiate_type' => "inline",
 			'transaction_ref' => $txnref,
 			'callback_url' => $callback_url,
-			'is_recurring' => true
+			'is_recurring' => false
 		);
 
 		if( !empty($payment_channels) ){
