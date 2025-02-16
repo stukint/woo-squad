@@ -932,7 +932,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 		$args = array(
 			'headers' => $headers,
 			'timeout' => 60,
-			'body'    => json_encode( $squad_params ),
+			//'body'    => json_encode( $squad_params ),
 		);
 
 		$request = wp_remote_post( $squad_url, $args );
