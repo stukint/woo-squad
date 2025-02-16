@@ -888,7 +888,57 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 	 * @param int $order_id
 	 * @return array|void
 	 */
-	public function process_redirect_payment_option( $order_id ) {}
+	public function process_redirect_payment_option( $order_id ) {
+
+		$order = wc_get_order( $order_id );
+		$email         = $order->get_billing_email();
+        $first_name	   = $order->get_billing_first_name();
+		$last_name	   = $order->get_billing_last_name();
+		$customer_name = $first_name . ' ' . $last_name;
+		$amount        = $order->get_total() * 100;
+		$txnref        = 'SQD' . '_' . $order_id . '_' . time();
+		$currency      = $order->get_currency();
+		$callback_url  = WC()->api_request_url( 'WC_Gateway_Squad' );
+
+		$payment_channels = $this->get_gateway_payment_channels($order);
+
+		$squad_params = array(
+			'email' => $email,
+			'amount' => $amount,
+			'currency' => $currency,
+			'customer_name' => $customer_name,
+			'initiate_type' => "inline",
+			'transaction_ref' => $txnref,
+			'callback_url' => $callback_url,
+			'is_recurring' => true
+		);
+
+		if( !empty($payment_channels) ){
+			$squad_params['payment_channels'] = $payment_channels;
+		}
+
+		$squad_params['metadata']['custom_fields'] = $this->get_custom_fields($order_id);
+
+		$order->update_meta_data( '_squad_txn_ref', $txnref );
+		$order->save();
+
+		$squad_url = $this->api_url . '/transaction/initiate';
+
+		$headers = array(
+			'Authorization' => 'Bearer ' . $this->secret_key,
+			'Content-Type'  => 'application/json'
+		);
+
+		$args = array(
+			'headers' => $headers,
+			'timeout' => 60,
+			'body'    => json_encode( $squad_params ),
+		);
+
+		$request = wp_remote_post( $squad_url, $args );
+
+		error_log(print_r(json_encode($request), true));
+	}
 
     /**
 	 * Process a token payment.
@@ -984,7 +1034,11 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		@ob_clean();
 
-		error_log(print_r($squad_txn_ref, true));
+		if($squad_txn_ref){
+
+		
+
+		}
 
 	}
 

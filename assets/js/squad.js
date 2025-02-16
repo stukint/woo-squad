@@ -180,6 +180,7 @@ jQuery( function( $ ) {
             transaction_ref: wc_squad_params.transaction_ref,
             currency_code: wc_squad_params.currency_code,
             customer_name: wc_squad_params.customer_name,
+			is_recurring: true,
             metadata: {
                 custom_fields: wcSquadCustomFields
             }
