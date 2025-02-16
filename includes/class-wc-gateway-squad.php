@@ -1180,7 +1180,17 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 	 */
 	public function process_webhooks() {
 
-		error_log(print_r(json_encode($_SERVER), true));
+		if ( ! array_key_exists( 'HTTP_X_SQUAD_ENCRYPTED_BODY', $_SERVER ) || ( strtoupper( $_SERVER['REQUEST_METHOD'] ) !== 'POST' ) ) {
+			exit;
+		}
+
+		$json = file_get_contents( 'php://input' );
+		
+		error_log(print_r(hash_hmac('sha512', $json, $this->secret_key), true));
+
+		error_log(print_r($_SERVER['HTTP_X_SQUAD_ENCRYPTED_BODY'], true));
+
+		
 
 	}
 
