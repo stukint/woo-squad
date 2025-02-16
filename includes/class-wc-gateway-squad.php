@@ -76,6 +76,13 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 	 */
 	public $saved_cards;
 
+	/**
+	 * Enable or disable recurring payment?
+	 *
+	 * @var bool
+	 */
+	public $is_recurring;
+
     /**
 	 * Should the cancel & remove order button be removed on the pay for order page.
 	 *
@@ -247,6 +254,8 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
         $this->order_failed_message = $this->get_option( 'order_failed_message' );
 
 		$this->saved_cards = $this->get_option( 'saved_cards' ) === 'yes' ? true : false;
+
+		$this->is_recurring = $this->get_option( 'is_recurring' ) === 'yes' ? true : false;
 
         $this->custom_metadata = $this->get_option( 'custom_metadata' ) === 'yes' ? true : false;
 
@@ -486,6 +495,14 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 				'custom_attributes' => array(
 					'data-placeholder' => __( 'Select payment channels', 'woo-squad' ),
 				)
+            ),
+			'is_recurring' => array(
+                'title'       => __( 'Enable Recurring Payment', 'woo-squad' ),
+				'label'       => __( 'Enable Recurring Payment', 'woo-squad' ),
+				'type'        => 'checkbox',
+				'description' => __( 'Enable squad recurring payments.', 'woo-squad' ),
+				'default'     => 'no',
+				'desc_tip'    => true
             ),
             'order_complete_message' => array(
 				'title'       => __( 'Order Complete Message', 'woo-squad' ),
