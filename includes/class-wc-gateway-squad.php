@@ -910,7 +910,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 			'initiate_type' => "inline",
 			'transaction_ref' => $txnref,
 			'callback_url' => $callback_url,
-			'is_recurring' => true
+			//'is_recurring' => false
 		);
 
 		if( !empty($payment_channels) && $payment_channels != false ){
@@ -938,22 +938,22 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 		$request = wp_remote_post( $squad_url, $args );
 		error_log(print_r(json_encode($request), true));
 
-		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
+		// if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 
-			$squad_response = json_decode(wp_remote_retrieve_body( $request ));
+		// 	$squad_response = json_decode(wp_remote_retrieve_body( $request ));
 
-			return array(
-				'result'   => 'success',
-				'redirect' => $squad_response->checkout_url,
-			);
+		// 	return array(
+		// 		'result'   => 'success',
+		// 		'redirect' => $squad_response->checkout_url,
+		// 	);
 
-		} else {
+		// } else {
 
-			wc_add_notice( __( 'Unable to process payment try again', 'woo-squad' ), 'error' );
+		// 	wc_add_notice( __( 'Unable to process payment try again', 'woo-squad' ), 'error' );
 
-			return;
+		// 	return;
 
-		}
+		// }
 	}
 
     /**
