@@ -3,7 +3,7 @@
  * Plugin Name: Squad WooCommerce Payment Gateway
  * Plugin URI: https://www.squadco.com
  * Description: WooCommerce payment gateway for Squad
- * Version: 1.0.0-1
+ * Version: 1.0.0-2
  * Author: Netsave Technologies
  * Author URI: https://www.netsavetech.com.ng
  * License: GPL-2.0+
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'WC_SQUAD_MAIN_FILE', __FILE__ );
 define( 'WC_SQUAD_URL', untrailingslashit( plugins_url( '/', __FILE__ ) ) );
 
-define( 'WC_SQUAD_VERSION', '1.0.0-1' );
+define( 'WC_SQUAD_VERSION', '1.0.0-2' );
 
 /**
  * Initialize Squad WooCommerce payment gateway.
