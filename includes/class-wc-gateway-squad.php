@@ -913,8 +913,8 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 			'is_recurring' => false
 		);
 
-		if( !empty($payment_channels) ){
-			//$squad_params['payment_channels'] = $payment_channels;
+		if( !empty($payment_channels) && $payment_channels != false ){
+			$squad_params['payment_channels'] = $payment_channels;
 		}
 
 		$squad_params['metadata']['custom_fields'] = $this->get_custom_fields($order_id);
@@ -937,7 +937,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		$request = wp_remote_post( $squad_url, $args );
 
-		error_log(print_r(json_encode($payment_channels), true));
+		error_log(print_r(json_encode($request), true));
 	}
 
     /**
