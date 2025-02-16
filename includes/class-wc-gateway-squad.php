@@ -937,7 +937,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		$request = wp_remote_post( $squad_url, $args );
 
-		error_log(print_r(json_encode($request), true));
+		error_log(print_r(json_encode($this->secret_key), true));
 	}
 
     /**
