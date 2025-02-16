@@ -941,6 +941,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 
 			$squad_response = json_decode(wp_remote_retrieve_body( $request ));
+			error_log(print_r($squad_response, true));
 
 			return array(
 				'result'   => 'success',
