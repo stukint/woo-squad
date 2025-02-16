@@ -241,6 +241,8 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 		$this->live_public_key = $this->get_option( 'live_public_key' );
 		$this->live_secret_key = $this->get_option( 'live_secret_key' );
 
+		$this->payment_channels = $this->get_option( 'payment_channels' );
+
         $this->order_complete_message = $this->get_option( 'order_complete_message' );
         $this->order_failed_message = $this->get_option( 'order_failed_message' );
 
