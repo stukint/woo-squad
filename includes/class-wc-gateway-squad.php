@@ -945,7 +945,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 			return array(
 				'result'   => 'success',
-				'redirect' => $squad_response->checkout_url,
+				'redirect' => $squad_response->data->checkout_url,
 			);
 
 		} else {
