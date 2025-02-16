@@ -1055,7 +1055,9 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		if($squad_txn_ref){
 
-		
+			$squad_response = $this->get_squad_transaction($squad_txn_ref);
+
+			error_log(print_r(json_encode($squad_response), true));
 
 		}
 
@@ -1297,7 +1299,28 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 	 * @param $squad_txn_ref
 	 * @return false|mixed
 	 */
-	private function get_squad_transaction( $squad_txn_ref ) {}
+	private function get_squad_transaction( $squad_txn_ref ) {
+
+		$squad_url = $this->api_url . '/transaction/verify/' . $squad_txn_ref;
+
+		$headers = array(
+			'Authorization' => 'Bearer ' . $this->secret_key,
+		);
+
+		$args = array(
+			'headers' => $headers,
+			'timeout' => 60,
+		);
+
+		$request = wp_remote_get( $squad_url, $args );
+
+		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
+			return json_decode( wp_remote_retrieve_body( $request ) );
+		}
+
+		return false;
+
+	}
 
     /**
 	 * Get Squad payment icon URL.
