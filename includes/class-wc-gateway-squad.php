@@ -497,7 +497,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 				)
             ),
 			'is_recurring' => array(
-                'title'       => __( 'Enable Recurring Payment', 'woo-squad' ),
+                'title'       => __( 'Recurring Payment', 'woo-squad' ),
 				'label'       => __( 'Enable Recurring Payment', 'woo-squad' ),
 				'type'        => 'checkbox',
 				'description' => __( 'Enable squad recurring payments.', 'woo-squad' ),
