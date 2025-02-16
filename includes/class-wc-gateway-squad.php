@@ -915,6 +915,8 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		if( !empty($payment_channels) && $payment_channels != false ){
 			$squad_params['payment_channels'] = $payment_channels;
+		}else{
+			$squad_params['payment_channels'] = array('card', 'bank', 'ussd', 'transfer');
 		}
 
 		$squad_params['metadata']['custom_fields'] = $this->get_custom_fields($order_id);
