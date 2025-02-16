@@ -190,6 +190,10 @@ jQuery( function( $ ) {
             paymentData[ 'payment_channels' ] = wcPaymentChannels();
         }
 
+		if(wc_squad_params.is_recurring){
+			paymentData['is_recurring'] = true;
+		}
+
         const squadInstance = new squad(paymentData);
         squadInstance.setup();
         squadInstance.open();

@@ -70,13 +70,6 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 	public $live_api_url;
 
 	/**
-	 * Should we save customer cards?
-	 *
-	 * @var bool
-	 */
-	public $saved_cards;
-
-	/**
 	 * Enable or disable recurring payment?
 	 *
 	 * @var bool
@@ -252,8 +245,6 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
         $this->order_complete_message = $this->get_option( 'order_complete_message' );
         $this->order_failed_message = $this->get_option( 'order_failed_message' );
-
-		$this->saved_cards = $this->get_option( 'saved_cards' ) === 'yes' ? true : false;
 
 		$this->is_recurring = $this->get_option( 'is_recurring' ) === 'yes' ? true : false;
 
@@ -647,11 +638,11 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 			return;
 		}
 
-		if ( $this->supports( 'tokenization' ) && is_checkout() && $this->saved_cards && is_user_logged_in() ) {
-			$this->tokenization_script();
-			$this->saved_payment_methods();
-			$this->save_payment_method_checkbox();
-		}
+		// if ( $this->supports( 'tokenization' ) && is_checkout() && is_user_logged_in() ) {
+		// 	$this->tokenization_script();
+		// 	$this->saved_payment_methods();
+		// 	$this->save_payment_method_checkbox();
+		// }
 
     }
 
@@ -710,6 +701,10 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
                 $squad_params['customer_name'] = $customer_name;
     
             }
+
+			if($this->is_recurring){
+				$squad_params['is_recurring'] = true;
+			}
 
             if ( $this->custom_metadata ) {
 
@@ -846,48 +841,48 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 	 */
 	public function process_payment( $order_id ) {
 
-        $payment_token = 'wc-' . trim( $this->id ) . '-payment-token';
+        //$payment_token = 'wc-' . trim( $this->id ) . '-payment-token';
 
 		// phpcs:ignore WordPress.Security.NonceVerification
-		if ( isset( $_POST[ $payment_token ] ) && 'new' !== wc_clean( $_POST[ $payment_token ] ) ) {
+		// if ( isset( $_POST[ $payment_token ] ) && 'new' !== wc_clean( $_POST[ $payment_token ] ) ) {
 
-			// phpcs:ignore WordPress.Security.NonceVerification
-			$token_id = wc_clean( $_POST[ $payment_token ] );
-			$token    = \WC_Payment_Tokens::get( $token_id );
+		// 	// phpcs:ignore WordPress.Security.NonceVerification
+		// 	$token_id = wc_clean( $_POST[ $payment_token ] );
+		// 	$token    = \WC_Payment_Tokens::get( $token_id );
 
-			if ( $token->get_user_id() !== get_current_user_id() ) {
+		// 	if ( $token->get_user_id() !== get_current_user_id() ) {
 
-				wc_add_notice( 'Invalid token ID', 'error' );
+		// 		wc_add_notice( 'Invalid token ID', 'error' );
 
-				return;
-			}
+		// 		return;
+		// 	}
 
-			$token_payment_status = $this->process_token_payment( $token->get_token(), $order_id );
+		// 	$token_payment_status = $this->process_token_payment( $token->get_token(), $order_id );
 
-			if ( ! $token_payment_status ) {
-				return;
-			}
+		// 	if ( ! $token_payment_status ) {
+		// 		return;
+		// 	}
 
-			$order = wc_get_order( $order_id );
+		// 	$order = wc_get_order( $order_id );
 
-			return array(
-				'result'   => 'success',
-				'redirect' => $this->get_return_url( $order ),
-			);
-		}
+		// 	return array(
+		// 		'result'   => 'success',
+		// 		'redirect' => $this->get_return_url( $order ),
+		// 	);
+		// }
 
 		$order = wc_get_order( $order_id );
 
-		$new_payment_method = 'wc-' . trim( $this->id ) . '-new-payment-method';
+		// $new_payment_method = 'wc-' . trim( $this->id ) . '-new-payment-method';
 
-		// phpcs:ignore WordPress.Security.NonceVerification
-		if ( isset( $_POST[ $new_payment_method ] ) && ( true === (bool) $_POST[ $new_payment_method ] && $this->saved_cards ) && is_user_logged_in() ) {
+		// // phpcs:ignore WordPress.Security.NonceVerification
+		// if ( isset( $_POST[ $new_payment_method ] ) && ( true === (bool) $_POST[ $new_payment_method ] && $this->saved_cards ) && is_user_logged_in() ) {
 
-            $order->update_meta_data( '_wc_squad_save_card', true );
+        //     $order->update_meta_data( '_wc_squad_save_card', true );
 
-			$order->save();
+		// 	$order->save();
 
-        }
+        // }
 
         if ( 'redirect' === $this->payment_page ) {
 			return $this->process_redirect_payment_option( $order_id );
@@ -935,6 +930,10 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 			$squad_params['payment_channels'] = $payment_channels;
 		}else{
 			$squad_params['payment_channels'] = array('card', 'bank', 'ussd', 'transfer');
+		}
+
+		if($this->is_recurring){
+			$squad_params['is_recurring'] = true;
 		}
 
 		$squad_params['metadata']['custom_fields'] = $this->get_custom_fields($order_id);
@@ -1074,16 +1073,124 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 			$squad_response = $this->get_squad_transaction($squad_txn_ref);
 
-			error_log(print_r(json_encode($squad_response), true));
+			if($squad_response !== false){
+
+				if($squad_response->data->transaction_status == 'success'){
+
+					$order_details = explode('_', $squad_response->data->transaction_ref);
+					$order_id = (int) $order_details[1];
+					$order = wc_get_order($order_id);
+
+					if ( in_array( $order->get_status(), array( 'processing', 'completed', 'on-hold' ) ) ) {
+
+						wp_redirect( $this->get_return_url( $order ) );
+
+						exit;
+
+					}
+
+					$order_total      = $order->get_total();
+					$order_currency   = $order->get_currency();
+					$currency_symbol  = get_woocommerce_currency_symbol( $order_currency );
+					$amount_paid = $squad_response->data->transaction_amount / 100;
+					$squad_ref = $squad_response->data->transaction_ref;
+					$payment_currency = strtoupper($squad_response->data->transaction_currency_id);
+					$gateway_symbol = get_woocommerce_currency_symbol($payment_currency);
+
+					// check if the amount paid is equal to the order amount.
+					if ( $amount_paid < absint( $order_total ) ) {
+
+						$order->update_status( 'on-hold', '' );
+
+						$order->add_meta_data( '_transaction_id', $squad_ref, true );
+
+						$notice      = sprintf( __( 'Thank you for your payment.%1$sYour payment transaction was successful, but the amount paid is not the same as the total order amount.%2$sYour order is currently on hold.%3$sKindly contact us for more information regarding your order and payment status.', 'woo-squad' ), '<br />', '<br />', '<br />' );
+						$notice_type = 'notice';
+
+						// Add Customer Order Note
+						$order->add_order_note( $notice, 1 );
+
+						// Add Admin Order Note
+						$admin_order_note = sprintf( __( '<strong>Look into this order</strong>%1$sThis order is currently on hold.%2$sReason: Amount paid is less than the total order amount.%3$sAmount Paid was <strong>%4$s (%5$s)</strong> while the total order amount is <strong>%6$s (%7$s)</strong>%8$s<strong>Squad Transaction Reference:</strong> %9$s', 'woo-squad' ), '<br />', '<br />', '<br />', $currency_symbol, $amount_paid, $currency_symbol, $order_total, '<br />', $squad_ref );
+						$order->add_order_note( $admin_order_note );
+
+						function_exists( 'wc_reduce_stock_levels' ) ? wc_reduce_stock_levels( $order_id ) : $order->reduce_order_stock();
+
+						wc_add_notice( $notice, $notice_type );
+
+					} else {
+						if ( $payment_currency !== $order_currency ) {
+
+							$order->update_status( 'on-hold', '' );
+
+							$order->update_meta_data( '_transaction_id', $squad_ref );
+
+							$notice      = sprintf( __( 'Thank you for your payment.%1$sYour payment was successful, but the payment currency is different from the order currency.%2$sYour order is currently on-hold.%3$sKindly contact us for more information regarding your order and payment status.', 'woo-squad' ), '<br />', '<br />', '<br />' );
+							$notice_type = 'notice';
+
+							// Add Customer Order Note
+							$order->add_order_note( $notice, 1 );
+
+							// Add Admin Order Note
+							$admin_order_note = sprintf( __( '<strong>Look into this order</strong>%1$sThis order is currently on hold.%2$sReason: Order currency is different from the payment currency.%3$sOrder Currency is <strong>%4$s (%5$s)</strong> while the payment currency is <strong>%6$s (%7$s)</strong>%8$s<strong>Squad Transaction Reference:</strong> %9$s', 'woo-squad' ), '<br />', '<br />', '<br />', $order_currency, $currency_symbol, $payment_currency, $gateway_symbol, '<br />', $squad_ref );
+							$order->add_order_note( $admin_order_note );
+
+							function_exists( 'wc_reduce_stock_levels' ) ? wc_reduce_stock_levels( $order_id ) : $order->reduce_order_stock();
+
+							wc_add_notice( $notice, $notice_type );
+
+						} else {
+
+							$order->payment_complete( $squad_ref );
+							$order->add_order_note( sprintf( __( 'Payment via Squad successful (Transaction Reference: %s)', 'woo-squad' ), $squad_ref ) );
+
+							if ( $this->is_autocomplete_order_enabled( $order ) ) {
+								$order->update_status( 'completed' );
+							}
+
+						}
+					}
+
+					$order->save();
+					
+					$this->save_subscription_payment_token( $order_id, $squad_response );
+
+					WC()->cart->empty_cart();
+
+				} else {
+
+					$order_details = explode( '_', $squad_txn_ref );
+
+					$order_id = (int) $order_details[1];
+
+					$order = wc_get_order( $order_id );
+
+					$order->update_status( 'failed', __( 'Squad payment was declined.', 'woo-squad' ) );
+
+				}
+
+			}
+
+			wp_redirect( $this->get_return_url( $order ) );
+
+			exit;
 
 		}
+
+		wp_redirect( wc_get_page_permalink( 'cart' ) );
+
+		exit;
 
 	}
 
     /**
 	 * Process Webhook.
 	 */
-	public function process_webhooks() {}
+	public function process_webhooks() {
+
+		error_log(print_r(json_encode($_SERVER), true));
+
+	}
 
     /**
 	 * Save Customer Card Details.
@@ -1092,7 +1199,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 	 * @param $user_id
 	 * @param $order_id
 	 */
-	public function save_card_details( $squad_response, $user_id, $order_id ) {}
+	//public function save_card_details( $squad_response, $user_id, $order_id ) {}
 
     /**
 	 * Save payment token to the order for automatic renewal for further subscription payment.
