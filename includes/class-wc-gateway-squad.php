@@ -535,14 +535,6 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 					'2' => __( '2 gateways', 'woo-squad' )
 				)
             ),
-            'saved_cards' => array(
-                'title'       => __( 'Saved Cards', 'woo-squad' ),
-				'label'       => __( 'Enable Payment via Saved Cards', 'woo-squad' ),
-				'type'        => 'checkbox',
-				'description' => __( 'If enabled, users will be able to pay with a saved card during checkout. Card details are saved on Squad servers, not on your store.<br>Note that you need to have a valid SSL certificate installed.', 'woo-squad' ),
-				'default'     => 'no',
-				'desc_tip'    => true
-            ),
             'custom_metadata' => array(
                 'title'       => __( 'Custom Metadata', 'woo-squad' ),
 				'label'       => __( 'Enable Custom Metadata', 'woo-squad' ),
