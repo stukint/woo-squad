@@ -1194,7 +1194,7 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		error_log(print_r($_SERVER['HTTP_X_SQUAD_ENCRYPTED_BODY'], true));
 
-		error_log(print_r(hash_hmac('sha512', $json, $this->secret_key ), true));
+		error_log(print_r(strtoupper(hash_hmac('sha512', $json, $this->secret_key )), true));
 		
 		error_log(print_r($json, true));
 
