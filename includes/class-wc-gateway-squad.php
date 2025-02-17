@@ -1022,7 +1022,9 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		if($order->get_status() == 'failed'){
 			if ($this->order_failed_message){
-				echo wp_kses_post(wpautop(wptexturize($this->order_failed_message)));
+				$ptext = wpautop(wptexturize($this->order_failed_message));
+				$ptext = str_replace('<p>', '<p style="font-size: 1rem; font-weight: 500; color: red;">', $ptext);
+				echo wp_kses_post($ptext);
 				return;
 			}
 			return;
