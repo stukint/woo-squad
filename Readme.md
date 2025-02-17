@@ -1,1 +1,1 @@
-Woocommerce plugin for squad payment gateway v1.0.0
+Woocommerce plugin for squad payment gateway v1.0.0-1
