@@ -1144,8 +1144,10 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 					}
 
 					$order->save();
-					
-					$this->save_subscription_payment_token( $order_id, $squad_response );
+
+					if($this->is_recurring){
+						$this->save_subscription_payment_token( $order_id, $squad_response );
+					}
 
 					WC()->cart->empty_cart();
 
@@ -1282,7 +1284,9 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		$order->save();
 		
-		$this->save_subscription_payment_token( $order_id, $squad_response );
+		if($this->is_recurring){
+			$this->save_subscription_payment_token( $order_id, $squad_response );
+		}
 
 		WC()->cart->empty_cart();
 
