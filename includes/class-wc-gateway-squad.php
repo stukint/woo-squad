@@ -1200,12 +1200,93 @@ class WC_Gateway_Squad extends WC_Payment_Gateway_CC{
 
 		$squad_response = $this->get_squad_transaction($event->Body->transaction_ref);
 
-		// if($squad_response === false){
-		// 	return;
-		// }
+		if($squad_response === false){
+			return;
+		}
 		
-		error_log(print_r($squad_response, true));
+		$order_details = explode('_', $squad_response->data->transaction_ref);
+		$order_id = (int) $order_details[1];
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order ) {
+			return;
+		}
 		
+		http_response_code( 200 );
+
+		if ( in_array( strtolower( $order->get_status() ), array( 'processing', 'completed', 'on-hold' ), true ) ) {
+			exit;
+		}
+
+		$order_currency = $order->get_currency();
+		$currency_symbol = get_woocommerce_currency_symbol( $order_currency );
+		$order_total      = $order->get_total();
+		$amount_paid = $squad_response->data->transaction_amount / 100;
+		$squad_ref = $squad_response->data->transaction_ref;
+		$payment_currency = strtoupper($squad_response->data->transaction_currency_id);
+		$gateway_symbol = get_woocommerce_currency_symbol($payment_currency);
+
+		// check if the amount paid is equal to the order amount.
+		if ( $amount_paid < absint( $order_total ) ) {
+
+			$order->update_status( 'on-hold', '' );
+
+			$order->add_meta_data( '_transaction_id', $squad_ref, true );
+
+			$notice      = sprintf( __( 'Thank you for your payment.%1$sYour payment transaction was successful, but the amount paid is not the same as the total order amount.%2$sYour order is currently on hold.%3$sKindly contact us for more information regarding your order and payment status.', 'woo-squad' ), '<br />', '<br />', '<br />' );
+			$notice_type = 'notice';
+
+			// Add Customer Order Note
+			$order->add_order_note( $notice, 1 );
+
+			// Add Admin Order Note
+			$admin_order_note = sprintf( __( '<strong>Look into this order</strong>%1$sThis order is currently on hold.%2$sReason: Amount paid is less than the total order amount.%3$sAmount Paid was <strong>%4$s (%5$s)</strong> while the total order amount is <strong>%6$s (%7$s)</strong>%8$s<strong>Squad Transaction Reference:</strong> %9$s', 'woo-squad' ), '<br />', '<br />', '<br />', $currency_symbol, $amount_paid, $currency_symbol, $order_total, '<br />', $squad_ref );
+			$order->add_order_note( $admin_order_note );
+
+			function_exists( 'wc_reduce_stock_levels' ) ? wc_reduce_stock_levels( $order_id ) : $order->reduce_order_stock();
+
+			wc_add_notice( $notice, $notice_type );
+
+		} else {
+			if ( $payment_currency !== $order_currency ) {
+
+				$order->update_status( 'on-hold', '' );
+
+				$order->update_meta_data( '_transaction_id', $squad_ref );
+
+				$notice      = sprintf( __( 'Thank you for your payment.%1$sYour payment was successful, but the payment currency is different from the order currency.%2$sYour order is currently on-hold.%3$sKindly contact us for more information regarding your order and payment status.', 'woo-squad' ), '<br />', '<br />', '<br />' );
+				$notice_type = 'notice';
+
+				// Add Customer Order Note
+				$order->add_order_note( $notice, 1 );
+
+				// Add Admin Order Note
+				$admin_order_note = sprintf( __( '<strong>Look into this order</strong>%1$sThis order is currently on hold.%2$sReason: Order currency is different from the payment currency.%3$sOrder Currency is <strong>%4$s (%5$s)</strong> while the payment currency is <strong>%6$s (%7$s)</strong>%8$s<strong>Squad Transaction Reference:</strong> %9$s', 'woo-squad' ), '<br />', '<br />', '<br />', $order_currency, $currency_symbol, $payment_currency, $gateway_symbol, '<br />', $squad_ref );
+				$order->add_order_note( $admin_order_note );
+
+				function_exists( 'wc_reduce_stock_levels' ) ? wc_reduce_stock_levels( $order_id ) : $order->reduce_order_stock();
+
+				wc_add_notice( $notice, $notice_type );
+
+			} else {
+
+				$order->payment_complete( $squad_ref );
+				$order->add_order_note( sprintf( __( 'Payment via Squad successful (Transaction Reference: %s)', 'woo-squad' ), $squad_ref ) );
+
+				if ( $this->is_autocomplete_order_enabled( $order ) ) {
+					$order->update_status( 'completed' );
+				}
+
+			}
+		}
+
+		$order->save();
+		
+		$this->save_subscription_payment_token( $order_id, $squad_response );
+
+		WC()->cart->empty_cart();
+
+		exit;
 
 	}
 
